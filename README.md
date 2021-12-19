@@ -2,11 +2,19 @@
 
 Emscripten is a neat tool that compiles C++ and OpenGL into javascript or wasm for the web.
 
-This is a simple Emscripen test engine with C++ / Opengl / CMake / Linux. This should also compile on Windows.
+This is a simple Emscripen test engine with C++ / Opengl / CMake / Linux.
 
-# How to Run
+# Problems
+The express.js server instance doesn't handle queries the right way. It doesn't look very nice.
 
-TODO
+# How to Run<br/>
+pkg install<br/>
+* cmake
+* emscripten
+
+npm install<br/>
+* expressjs
+
 
 # TODO
 
