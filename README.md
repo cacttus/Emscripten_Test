@@ -21,7 +21,7 @@ One way around this is to keep user's assets in a database. That's a whole nothe
 # How to Run<br/>
 
 
-Note, you have to run this via a server and hit localhost. You caan't just click on the outupt HTML file. Due to CORS the server needs a certificate to be generated before it will work.
+Note, you have to run this via a server and hit localhost (You can't just click on the outupt HTML file). Due to CORS your local server needs a certificate to be generated before it will allow these cross origin headers (see OpenSSL certificate generation).
 
 src/main.cpp has the terminal build string for plain em++. There is also a build string in the CMake file for the cmake version (may not be up to date).
 
