@@ -1,29 +1,29 @@
 # Emscripten Test C++ / OpenGL
 
-Emscripten is a neat tool that compiles C++ and OpenGL into javascript or wasm for the web.
+Emscripten is a neat tool that compiles C++ and OpenGL into javascript or wasm for the web. It has its own compiler, and even its own CMake compiler. It packages assets and also generates WASM code for optimal speed. It even supports multithreading via webworkers.
 
-This is a simple Emscripen test game engine with C++ / Opengl / CMake / Linux. The goal of this project is to test out the feasibility of emscripten as a commercial game engine.
+This is a simple Emscripen test game engine with C++ / Opengl / SDL / CMake / Linux. The goal of this project is to test out the feasibility of emscripten as a commercial game engine.
 
 Tests <br/>
 * Render Speed / WASM
 * Threads (-pthread) (compiles to web worker)
-* Asset creation.
-* Asset Compression. 
 * Dynamic asset loading.
 * CORS 
 
 # Results
 
-I wrote this guy several months ago but abandoned it for several reasons. Frankly, it is not the best way to create a game engine due to limitations of the web.
+I wrote this guy several months ago but abandoned it for just a few reasons. Frankly, I had trouble with assets. Everything else panned out fine.
 
-The biggest problem was asset loading. Especially for a game engine, we need to dynamically create and modify data very quickly meaning disk I/O and you can't do that easily on the web. This is an even bigger issue with asset creation which essentially would benefit from direct IO. 
+The biggest problem was asset loading. Especially for a game engine, we need to dynamically create and modify data very quickly meaning disk I/O and you can't do that easily on the web. The local assets for this engine were created through a package.
 
-One way around this is to keep user's assets in a database. That's a whole nother spectrum of complexity to dive into. Emscripten is really cool though. I might pick this project back up in the future.
+One way around this is to keep user's assets in a database. That's a whole nother spectrum of complexity to dive into. Emscripten is really cool. I might pick this project back up in the future to see if we can get around some of these limitations.
 
 # How to Run<br/>
 
-Note the app needs a local server certificate to be generated before it will work.
-src/main.cpp has the terminal build string
+
+Note, you have to run this via a server and hit localhost. You caan't just click on the outupt HTML file. Due to CORS the server needs a certificate to be generated before it will work.
+
+src/main.cpp has the terminal build string for plain em++. There is also a build string in the CMake file for the cmake version (may not be up to date).
 
 pkg install<br/>
 * cmake
