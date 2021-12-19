@@ -13,6 +13,10 @@ Tests <br/>
 The express.js server instance doesn't handle queries the right way. It doesn't look very nice. It runs locally over an instance of CORS.
 
 # How to Run<br/>
+
+Note the app needs a local server certificate to be generated before it will work.
+src/main.cpp has the terminal build string
+
 pkg install<br/>
 * cmake
 * emscripten
