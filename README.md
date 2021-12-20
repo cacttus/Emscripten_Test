@@ -12,7 +12,7 @@ Tests <br/>
 
 # Results
 
-I wrote this guy several months ago but abandoned it for just a few reasons. Frankly, I had trouble with assets. Everything else panned out fine.
+I wrote this guy several months ago as a test of how easy it is to port a desktop game engine to the browser. The biggest issue was file IO everything else panned out fine.
 
 The biggest problem was asset loading. Especially for a game engine, we need to dynamically create and modify data very quickly meaning disk I/O and you can't do that easily on the web. The local assets for this engine were created through a package.
 
@@ -25,13 +25,26 @@ Note, you have to run this via a server and hit localhost (You can't just click 
 
 src/main.cpp has the terminal build string for plain em++. There is also a build string in the CMake file for the cmake version (may not be up to date).
 
+## 1. Install
+
 pkg install<br/>
 * cmake
-* emscripten
+* python
+* emscripten - from git.
+    * https://emscripten.org/docs/getting_started/downloads.html
 
 npm install<br/>
 * expressjs
 * cors
+
+## 2. bash
+CD to em_test and run in terminal.
+
+Threaded
+mkdir -p ./build && EMCC_DEBUG=2; em++ -g -gsource-map -std=c++17 -pthread -I./third_party -s PTHREAD_POOL_SIZE=16 -s PTHREAD_POOL_SIZE_STRICT=4 -s ALLOW_MEMORY_GROWTH=1 -s WASM=1 -s FULL_ES3=1 -s USE_SDL=2 -s EXPORT_ES6=1 ./src/main.cpp ./src/lodepng.cpp -s -o ./build/hello.html --source-map-base=/build/ --preload-file ./assets/
+
+Non-Threaded
+mkdir -p ./build && EMCC_DEBUG=2; em++ -g -gsource-map -std=c++17 -I./third_party -s ALLOW_MEMORY_GROWTH=1 -s WASM=1 -s FULL_ES3=1 -s USE_SDL=2 -s EXPORT_ES6=1 ./src/main.cpp ./src/lodepng.cpp -s -o ./build/hello.html --source-map-base=/build/ --preload-file ./assets/
 
 # Problems
 
