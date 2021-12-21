@@ -9,7 +9,8 @@ Tests <br/>
 * Threads (-pthread) (compiles to web worker)
 * Dynamic asset loading.
 
-![Image]<img src="https://github.com/cacttus/Emscripten_Test/blob/master/ss.png?raw=true" width="400" height="auto">
+Yes, It works!<br/>
+<img alt="Yes, it works!" src="https://github.com/cacttus/Emscripten_Test/blob/master/ss.png?raw=true" width="400" height="auto">
 
 # How to Run<br/>
 
