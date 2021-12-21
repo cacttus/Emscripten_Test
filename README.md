@@ -31,7 +31,7 @@ npm<br/>
 
 ## Running
 * Run server.js 'node server.js'. 
-  * (If threading is enabled then CORS must be enabled in server.js. If you do, the local server needs a certificate to be generated and placed in the same directory as server.js. See OpenSSL certificate generation, Threading disabled by default).
+  * Note: If threading is enabled then CORS must be enabled in server.js. If you do, the local server needs a certificate to be generated and placed in the same directory as server.js. See OpenSSL certificate generation.
 * In your browser type localhost:8080
 * For VSCode users: Open the folder in VSCode. F7,F5=compile/run on web (Firefox default), and Ctrl+F7,Ctrl+F5 = Compile/run desktop.
 * See .vscode/tasks.json for build string
