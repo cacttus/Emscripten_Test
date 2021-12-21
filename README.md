@@ -8,7 +8,6 @@ Tests <br/>
 * Render Speed / WASM
 * Threads (-pthread) (compiles to web worker)
 * Dynamic asset loading.
-* CORS 
 
 # Comments
 
@@ -18,8 +17,7 @@ This runs ES3 (emulation) in the browser and GL4.3 on the desktop. If you import
 
 # How to Run<br/>
 
-
-Note, you have to run this via a server and hit localhost (You can't just click on the outupt HTML file). Due to CORS your local server needs a certificate to be generated before it will allow these cross origin headers (see OpenSSL certificate generation).
+Note, you have to run this via a server and hit localhost (You can't just click on the outupt HTML file). If CORS is enabled in the server.js (cross-origin .. ) your local server needs a certificate to be generated before it will allow these cross origin headers (see OpenSSL certificate generation).
 
 src/main.cpp has the terminal build string for plain em++. There is also a build string in the CMake file for the cmake version (may not be up to date).
 
