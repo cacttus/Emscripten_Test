@@ -11,29 +11,26 @@ Tests <br/>
 
 # How to Run<br/>
 
-Run the server.js via node. (for CORS local server needs a certificate to be generated see OpenSSL certificate generation).
-
-src/main.cpp has the terminal build string for plain em++. There is also a build string in the CMake file for the cmake version (may not be up to date).
-
-pkg install<br/>
+## Required Packages 
+Linux<br/>
 * build-essential
 * SDL2
 * cmake
+* npm
 * python
-* emscripten (git)
+* emscripten
   * https://emscripten.org/docs/getting_started/downloads.html#installation-instructions-using-the-emsdk-recommended
-  * Note server.js is configured to look for emsdk at the same level as the Emscripten_Test project (e.g. ..)
+  * Note server.js is configured to look for emsdk at the same level as the Emscripten_Test project (e.g. at ../emsdk)
 
-npm install<br/>
+npm<br/>
 * expressjs
 * cors
 
-
-* VSCode users F7,F5=compile/run on web (Firefox default), and Ctrl+F7,Ctrl+F5 = Compile/run desktop.
-
-* See .vscode/tasks.json
-
-
+## Running
+* Run server.js 'node server.js'. (for CORS local server needs a certificate to be generated see OpenSSL certificate generation).
+* In your browser type localhost:8080
+* For VSCode users: Open the folder in VSCode. F7,F5=compile/run on web (Firefox default), and Ctrl+F7,Ctrl+F5 = Compile/run desktop.
+* See .vscode/tasks.json for build string
 
 # Image
 ![Image](https://github.com/cacttus/Emscripten_Test/blob/master/ss.png?raw=true)
