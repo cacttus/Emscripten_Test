@@ -239,12 +239,18 @@ struct v3n3x2 {
     x = dx;
   }
 };
-struct v_GuiVert {
+struct v_GuiVertGL4 {
   glm::vec4 _rect;
   glm::vec4 _clip;
   glm::vec4 _tex;
   glm::vec2 _texsiz;
   glm::uvec2 _pick_color;
+};
+struct v_GuiVertES3 {
+  glm::vec3 _pos;
+  float _pad0;
+  glm::vec2 _tex;
+  float _pad1[2];
 };
 #pragma endregion
 
@@ -757,22 +763,32 @@ public:
     SDLGLP2(PFNGLDISABLEVERTEXATTRIBARRAYPROC, glDisableVertexAttribArray);
     SDLGLP2(PFNGLACTIVETEXTUREPROC, glActiveTexture);
     SDLGLP2(PFNGLGETUNIFORMLOCATIONPROC, glGetUniformLocation);
+
+#ifndef __EMSCRIPTEN__
     SDLGLP2(PFNGLGETDEBUGMESSAGELOGPROC, glGetDebugMessageLog);
     SDLGLP2(PFNGLGETOBJECTLABELPROC, glGetObjectLabel);
     SDLGLP2(PFNGLOBJECTLABELPROC, glObjectLabel);
     SDLGLP2(PFNGLOBJECTPTRLABELPROC, glObjectPtrLabel);
     SDLGLP2(PFNGLGETOBJECTPTRLABELPROC, glGetObjectPtrLabel);
+    SDLGLP2(PFNGLMAPBUFFERPROC, glMapBuffer);
+    SDLGLP2(PFNGLFRAMEBUFFERPARAMETERIPROC, glFramebufferParameteri);
+    SDLGLP2(PFNGLTEXIMAGE2DMULTISAMPLEPROC, glTexImage2DMultisample);
+    SDLGLP2(PFNGLMEMORYBARRIERPROC, glMemoryBarrier);
+    SDLGLP2(PFNGLSHADERSTORAGEBLOCKBINDINGPROC, glShaderStorageBlockBinding);
+    SDLGLP2(PFNGLDISPATCHCOMPUTEPROC, glDispatchCompute);
+    SDLGLP2(PFNGLGETPROGRAMRESOURCEINDEXPROC, glGetProgramResourceIndex);
+    SDLGLP2(PFNGLCOPYIMAGESUBDATAPROC, glCopyImageSubData);
+#endif
+
     SDLGLP2(PFNGLGENVERTEXARRAYSPROC, glGenVertexArrays);
     SDLGLP2(PFNGLBINDVERTEXARRAYPROC, glBindVertexArray);
     SDLGLP2(PFNGLDELETEBUFFERSPROC, glDeleteBuffers);
     SDLGLP2(PFNGLISBUFFERPROC, glIsBuffer);
-    SDLGLP2(PFNGLMAPBUFFERPROC, glMapBuffer);
     SDLGLP2(PFNGLUNMAPBUFFERPROC, glUnmapBuffer);
     SDLGLP2(PFNGLGETBUFFERPARAMETERIVPROC, glGetBufferParameteriv);
     SDLGLP2(PFNGLDELETEVERTEXARRAYSPROC, glDeleteVertexArrays);
     SDLGLP2(PFNGLBINDFRAMEBUFFERPROC, glBindFramebuffer);
     SDLGLP2(PFNGLGENFRAMEBUFFERSPROC, glGenFramebuffers);
-    SDLGLP2(PFNGLFRAMEBUFFERPARAMETERIPROC, glFramebufferParameteri);
     SDLGLP2(PFNGLDRAWBUFFERSPROC, glDrawBuffers);
     SDLGLP2(PFNGLFRAMEBUFFERTEXTURE2DPROC, glFramebufferTexture2D);
     SDLGLP2(PFNGLCHECKFRAMEBUFFERSTATUSPROC, glCheckFramebufferStatus);
@@ -809,7 +825,6 @@ public:
     SDLGLP2(PFNGLGETVERTEXATTRIBIIVPROC, glGetVertexAttribIiv);
     SDLGLP2(PFNGLGETFRAMEBUFFERATTACHMENTPARAMETERIVPROC, glGetFramebufferAttachmentParameteriv);
     SDLGLP2(PFNGLGETACTIVEUNIFORMBLOCKIVPROC, glGetActiveUniformBlockiv);
-    SDLGLP2(PFNGLTEXIMAGE2DMULTISAMPLEPROC, glTexImage2DMultisample);
     SDLGLP2(PFNGLBLITFRAMEBUFFERPROC, glBlitFramebuffer);
     SDLGLP2(PFNGLGETPROGRAMBINARYPROC, glGetProgramBinary);
     SDLGLP2(PFNGLISPROGRAMPROC, glIsProgram);
@@ -817,24 +832,21 @@ public:
     SDLGLP2(PFNGLVALIDATEPROGRAMPROC, glValidateProgram);
     SDLGLP2(PFNGLGETACTIVEATTRIBPROC, glGetActiveAttrib);
     SDLGLP2(PFNGLGETATTRIBLOCATIONPROC, glGetAttribLocation);
-    SDLGLP2(PFNGLMEMORYBARRIERPROC, glMemoryBarrier);
+
     SDLGLP2(PFNGLMAPBUFFERRANGEPROC, glMapBufferRange);
     SDLGLP2(PFNGLGETACTIVEUNIFORMBLOCKNAMEPROC, glGetActiveUniformBlockName);
     SDLGLP2(PFNGLFENCESYNCPROC, glFenceSync);
     SDLGLP2(PFNGLISSYNCPROC, glIsSync);
     SDLGLP2(PFNGLGETSYNCIVPROC, glGetSynciv);
     SDLGLP2(PFNGLDELETESYNCPROC, glDeleteSync);
-    SDLGLP2(PFNGLDISPATCHCOMPUTEPROC, glDispatchCompute);
     SDLGLP2(PFNGLGETINTEGERI_VPROC, glGetIntegeri_v);
-    SDLGLP2(PFNGLSHADERSTORAGEBLOCKBINDINGPROC, glShaderStorageBlockBinding);
-    SDLGLP2(PFNGLGETPROGRAMRESOURCEINDEXPROC, glGetProgramResourceIndex);
+
     //SDLGLP2(PFNGLGETSAMPLERPARAMETERFVPROC, glGetSamplerParameterfv);
     //SDLGLP2(PFNGLGETSAMPLERPARAMETERIIVPROC, glGetSamplerParameterIiv);
     //SDLGLP2(PFNGLGETSAMPLERPARAMETERIUIVPROC, glGetSamplerParameterIuiv);
     //SDLGLP2(PFNGLGETSAMPLERPARAMETERIUIVPROC, glGetSamplerParameteruiv);
     //SDLGLP2(PFNGLGETSAMPLERPARAMETERIVPROC, glGetSamplerParameteriv);
     //SDLGLP2(PFNGLGETSAMPLERPARAMETERIVPROC, glGetSamplerParameteriv);
-    SDLGLP2(PFNGLCOPYIMAGESUBDATAPROC, glCopyImageSubData);
     //SDLGLP2(PFNGLDELETETEXTURESEXTPROC, glDeleteTextures);
     //SDLGLP2(PFNGLGETTEXPARAMETERIIVPROC, glGetTexParameteriv);
     //SDLGLP2(PFNGLGETTEXPARAMETERIUIVPROC, glGetTexParameteruiv);
@@ -1029,6 +1041,10 @@ private:
     //   return;
     // }
     if (!GL::glGetDebugMessageLog) {
+#ifdef __EMSCRIPTEN__
+      BRLogWarn("Opengl log not supported with ES");
+      return;
+#endif
       BRLogWarn("Opengl log not initialized (context isseu");
       return;
     }
@@ -1277,82 +1293,100 @@ public:
     std::string teximg = loc;
     int64_t dataSize = 0;
     char* data = nullptr;
-    
-   #ifdef __EMSCRIPTEN__
-   std::cout<<"Making dir .. " <<std::endl;
+
+#ifdef false
+    //__EMSCRIPTEN__
+    std::cout << "Making dir .. " << std::endl;
     EM_ASM((
-    var fs = require('fs');
-    //import * as fs from 'fs';
-    fs.writeFileSync('foobar.txt', 'yeehaw');
-    //var contents = fs.readFileSync('foobar.txt', { encoding: 'utf8' });
-    console.log("the CWD is ");
-    console.log(process.cwd());
-    ));
+      //var fs = require('fs');
+      //import * as fs from 'fs';
+      //FS.writeFileSync('foobar.txt', 'yeehaw');
+
+      //This is actually the noderawfs
+      // FS.mkdir('/working');
+      // FS.mount(NODEFS, { root: '.' }, '/working');
+      //var contents = fs.readFileSync('foobar.txt', { encoding: 'utf8' });
+      console.log("the CWD is ");
+      //console.log(process.cwd());
+      ));
 
 #ifndef NODERAWFS
-  // mount the current folder as a NODEFS instance
-  // inside of emscripten
-  EM_ASM((
-   // import * as fs from 'fs';
-    FS.mkdir('/working');
-    FS.mount(NODEFS, { root: '.' }, '/working');
-  ));
-#endif
-//       emscripten_async_wget_data(loc.c_str(), 0, (const char* str){
-//             teximg = str
-//     printf("file=%s menuicon=%p\n", str, menuicon)
-//       //Just copied the thing from below.
-//       int ret = FileSystem::SDLFileRead(teximg, data, dataSize, false);
-//         if (ret == 0) {
-//           //good
-// 
-//           unsigned int width = 0;
-//           unsigned int height = 0;
-//           int err = lodepng_decode32(&_pPixels, &width, &height, (unsigned char*)data, (size_t)dataSize);
-//           if (err != 0) {
-//             BRThrowException(Stz "Could not load image " + loc + " err code = " + err);
-//           }
-//           else {
-//             _width = (int32_t)width;
-//             _height = (int32_t)height;
-//             //Image32::flipImage20161206(_pPixels, _width, _height);
-//           }
-//         }
-//         else {
-//           BRLogError("Failed to read file " + teximg);
-//         }
-// 
-// 
-//       }, (const char* str){
-// printf("%s failed\n", str);
-//       })
-     #else
-    if (FileSystem::fileExists(teximg)) {
-        int ret = FileSystem::SDLFileRead(teximg, data, dataSize, false);
-        if (ret == 0) {
-          //good
+    std::cout << "Using Nodefs .. " << std::endl;
+    // mount the current folder as a NODEFS instance
+    // inside of emscripten
+    // EM_ASM((
+    //  // import * as fs from 'fs';
+    //   FS.mkdir('/working');
+    //   FS.mount(NODEFS, { root: '.' }, '/working');
+    // ));
+    FILE* file = nullptr;
+    int res;
+    char buffer[512];
+    file = fopen("./assets/mario.png", "r");
+    if (file) {
+      std::cout << "file was good" << std::endl;
+    }
+    else {
+      std::cout << "file wasn't good" << std::endl;
+    }
+    fclose(file);
 
-          unsigned int width = 0;
-          unsigned int height = 0;
-          int err = lodepng_decode32(&_pPixels, &width, &height, (unsigned char*)data, (size_t)dataSize);
-          if (err != 0) {
-            BRThrowException(Stz "Could not load image " + loc + " err code = " + err);
-          }
-          else {
-            _width = (int32_t)width;
-            _height = (int32_t)height;
-            //Image32::flipImage20161206(_pPixels, _width, _height);
-          }
+#endif
+    //       emscripten_async_wget_data(loc.c_str(), 0, (const char* str){
+    //             teximg = str
+    //     printf("file=%s menuicon=%p\n", str, menuicon)
+    //       //Just copied the thing from below.
+    //       int ret = FileSystem::SDLFileRead(teximg, data, dataSize, false);
+    //         if (ret == 0) {
+    //           //good
+    //
+    //           unsigned int width = 0;
+    //           unsigned int height = 0;
+    //           int err = lodepng_decode32(&_pPixels, &width, &height, (unsigned char*)data, (size_t)dataSize);
+    //           if (err != 0) {
+    //             BRThrowException(Stz "Could not load image " + loc + " err code = " + err);
+    //           }
+    //           else {
+    //             _width = (int32_t)width;
+    //             _height = (int32_t)height;
+    //             //Image32::flipImage20161206(_pPixels, _width, _height);
+    //           }
+    //         }
+    //         else {
+    //           BRLogError("Failed to read file " + teximg);
+    //         }
+    //
+    //
+    //       }, (const char* str){
+    // printf("%s failed\n", str);
+    //       })
+#else
+    //std::cout<<"No Emscripten"<<std::endl;
+    if (FileSystem::fileExists(teximg)) {
+      int ret = FileSystem::SDLFileRead(teximg, data, dataSize, false);
+      if (ret == 0) {
+        //good
+
+        unsigned int width = 0;
+        unsigned int height = 0;
+        int err = lodepng_decode32(&_pPixels, &width, &height, (unsigned char*)data, (size_t)dataSize);
+        if (err != 0) {
+          BRThrowException(Stz "Could not load image " + loc + " err code = " + err);
         }
         else {
-          BRLogError("Failed to read file " + teximg);
+          _width = (int32_t)width;
+          _height = (int32_t)height;
+          //Image32::flipImage20161206(_pPixels, _width, _height);
         }
       }
       else {
-        BRLogError("File does not exist " + teximg);
+        BRLogError("Failed to read file " + teximg);
       }
-    #endif
-
+    }
+    else {
+      BRLogError("File does not exist " + teximg);
+    }
+#endif
   }
 
 private:
@@ -1445,6 +1479,7 @@ public:
     _bRepeatU = bRepeatU;
     _bRepeatV = bRepeatV;
 
+#ifndef __EMSCRIPTEN__
     //Specify storage mode
     if (genMipmaps) {
       OglErr::chkErrRt();
@@ -1457,6 +1492,7 @@ public:
       GL::glTexStorage2D(_eGLTextureBinding, 1, _eGLTextureMipmapFormat, width(), height());
       OglErr::chkErrRt();
     }
+#endif
 
     // Copy texture data
     glTexSubImage2D(
@@ -1864,6 +1900,7 @@ public:
       }
     }
     catch (std::exception& ex) {
+      BRLogError("Shader compile failed - exception thrown.");
       Gu::debugBreak();
     }
   }
@@ -1966,6 +2003,9 @@ public:
     return copyDataServerClient(gb->size(), gb->data(), 1);
   }
   void readbytes(size_t num_elements, void* __out_ buf, int32_t elementSize) {
+    #ifdef __EMSCRIPTEN__
+      BRThrowException("BR2:Emscripten::Reading GL Buffers not allowed in GLES.");
+    #endif
     if (buf == nullptr) {
       BRLogError("Tried to read to NULL Buffer reading Gpu contents.");
       Gu::debugBreak();
@@ -1991,7 +2031,7 @@ public:
     bindBuffer();
     {
       void* pData = nullptr;
-      mapBuffer(GL_WRITE_ONLY, pData);
+      mapBuffer(GL_MAP_READ_BIT, readSize, pData);
       //memcpy_s((void*)buf, readSize, pData, readSize);
       std::memcpy((void*)buf, pData, readSize);
       unmapBuffer();
@@ -2035,7 +2075,8 @@ public:
       //**NOTE: we would HAVE to use glMapBuffer because when we initially create this buffer
       //we intend to have it to be the GIVEN size. glBufferData will reallocate it.
       void* pData = nullptr;
-      mapBuffer(GL_WRITE_ONLY, pData);
+
+      mapBuffer(GL_MAP_WRITE_BIT|GL_MAP_INVALIDATE_BUFFER_BIT, copySizeBytes, pData);
       std::memcpy((void*)pData, frags, copySizeBytes);
       //memcpy_s((void*)pData, getByteSize(), frags, copySizeBytes);
       unmapBuffer();
@@ -2044,7 +2085,7 @@ public:
     }
     unbindBuffer();
   }
-  void mapBuffer(GLenum access, void*& pData) {
+  void mapBuffer(GLenum access, size_t copySizeBytes, void*& pData) {
     void* frags;
     OglErr::chkErrDbg();
 
@@ -2063,8 +2104,9 @@ public:
       GL::glGetBufferParameteriv(GL_SHADER_STORAGE_BUFFER, GL_BUFFER_MAPPED, &dat);
       OglErr::chkErrDbg();
     }
-    frags = GL::glMapBuffer(_glBufferType, access);
-    OglErr::chkErrDbg();
+    frags = GL::glMapBufferRange(_glBufferType, 0, copySizeBytes, access);
+      //frags = GL::glMapBuffer(_glBufferType, access);
+      OglErr::chkErrDbg();
 
     _isMapped = true;
 
@@ -2125,13 +2167,10 @@ public:
 
 protected:
   uint32_t _glId = 0;
-  GLenum _glBufferType;  // GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER
-
+  GLenum _glBufferType;      // GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER
   size_t _iElementSize = 0;  // The element size
   size_t _iNumElements = 0;  // The number of elements we allocated
-
   string_t _meshName = "";
-
   bool _isMapped = false;
   bool _isBound = false;
   bool _bIsAllocated = false;
@@ -2142,14 +2181,45 @@ class PhysicsComponent {
 };
 class MeshComponent {
 };
-
-class QuadBlitter {
+class IQuadBlitter {
 public:
-  typedef v_GuiVert GuiVert;
-  QuadBlitter(int_fast32_t count = 8192, std::shared_ptr<Texture2D> pTex = nullptr) {
-    init(count);
+  virtual void setQuad(const glm::vec2& point, std::shared_ptr<RenderViewport> vp, const glm::vec4& color = glm::vec4(1, 1, 1, 1), const glm::vec2& wh = glm::vec2(-1, -1)) = 0;
+  void reset() {
+    _used = 0;
   }
-  virtual ~QuadBlitter() {
+  virtual void draw() = 0;
+  virtual void copyVerts() = 0;
+  void render(std::shared_ptr<RenderViewport> vp) {
+    if (_used == 0) {
+      return;
+    }
+    glDisable(GL_CULL_FACE);
+
+    std::shared_ptr<Texture2D> tex = getTex();
+
+    copyVerts();
+
+    tex->bind(TextureChannel::e::Channel0);
+    _prog->bind();
+
+    // auto mproj = glm::perspective(60.0f, (float)((float)vp->width() / (float)vp->height()), 1.0f, 1000.0f);
+    // auto mview = glm::lookAt(glm::vec3(0, 0, -10), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
+    _prog->setTextureUf(tex, "_ufTexture0");
+    // _prog->setMatrixUf(mview, "_ufView");
+    // _prog->setMatrixUf(mproj, "_ufProj");
+
+    //test_inline_vao();
+
+    GL::glBindVertexArray(_vao);
+    // _inds->bindBuffer();
+    draw();
+    // _inds->unbindBuffer();
+    GL::glBindVertexArray(0);
+    _prog->unbind();
+    tex->unbind(TextureChannel::e::Channel0);
+  }
+  virtual ~IQuadBlitter() {
     GL::glDeleteVertexArrays(1, &_vao);
   }
   void setTexture(std::shared_ptr<Texture2D> pTex) {
@@ -2162,10 +2232,228 @@ public:
     }
     return _pTex;
   }
-  void reset() {
-    _used = 0;
+
+protected:
+  std::shared_ptr<ShaderProgram> _prog = nullptr;
+  std::shared_ptr<GpuBuffer> _verts = nullptr;
+  std::shared_ptr<Texture2D> _pTex = nullptr;
+  GLuint _vao = 0;
+  uint32_t _count = 1;
+  uint32_t _used = 0;
+};
+class QuadBlitterES3 : public IQuadBlitter {
+  typedef v_GuiVertES3 GuiVert;
+
+public:
+  QuadBlitterES3(int_fast32_t count = 8192, std::shared_ptr<Texture2D> pTex = nullptr) {
+    init(count);
   }
-  void setQuad(const glm::vec2& point, std::shared_ptr<RenderViewport> vp, const glm::vec4& color = glm::vec4(1, 1, 1, 1), const glm::vec2& wh = glm::vec2(-1, -1)) {
+  virtual ~QuadBlitterES3() {
+  }
+  virtual void setQuad(const glm::vec2& point, std::shared_ptr<RenderViewport> vp, const glm::vec4& color = glm::vec4(1, 1, 1, 1), const glm::vec2& wh = glm::vec2(-1, -1)) override {
+    if (_used >= _verts_local.size()) {
+      BRLogError("Too many quads used.");
+      Gu::debugBreak();
+      return;
+    }
+
+    //These units are In Pixels.
+    Box2f cpyPos;
+    cpyPos._p0.x = point.x;
+    cpyPos._p0.y = point.y;
+    cpyPos._p1.x = wh.x <= 0 ? getTex()->width() : wh.x;
+    cpyPos._p1.y = wh.y <= 0 ? getTex()->height() : wh.y;
+
+    // convert to screen coordinates
+    Gu::guiQuad2d(cpyPos, vp);
+
+    /*
+
+2 +------+ 3
+  |    / |
+  | /    |
+0 +------+ 1
+
+*/
+    GuiVert& v0 = _verts_local[_used++];
+    GuiVert& v1 = _verts_local[_used++];
+    GuiVert& v2 = _verts_local[_used++];
+    GuiVert& v3 = _verts_local[_used++];
+    v0._pos.x = cpyPos._p0.x;
+    v0._pos.y = cpyPos._p0.x;
+    v1._pos = v2._pos = v3._pos = v0._pos;
+    v0._tex = v1._tex = v2._tex = v3._tex = glm::vec2(0, 0);
+  }
+
+  virtual void draw() override {
+    glDrawArrays(GL_TRIANGLES, 0, _used);
+  }
+  void test_inline_vao() {
+    //     GLint _v401 = GL::glGetAttribLocation(_prog->glId(), "_v401");
+    //     GLint _v402 = GL::glGetAttribLocation(_prog->glId(), "_v402");
+    //     GLint _v403 = GL::glGetAttribLocation(_prog->glId(), "_v403");
+    //     GLint _v201 = GL::glGetAttribLocation(_prog->glId(), "_v201");
+    //     GLint _u201 = GL::glGetAttribLocation(_prog->glId(), "_u201");
+    //
+    //     if (_v401 == -1 || _v402 == -1 || _v403 == -1 || _v201 == -1 || _u201 == -1) {
+    //       BRLogError("Failed to find one or more attributes for shader.");
+    //       Gu::debugBreak();
+    //     }
+    //     else {
+    //       OglErr::chkErrDbg();
+    //       _verts->bindBuffer();
+    //       OglErr::chkErrDbg();
+    //       GL::glEnableVertexAttribArray(_v401);
+    //       GL::glVertexAttribPointer(
+    //         _v401,
+    //         4,                      // size
+    //         GL_FLOAT,               // type
+    //         GL_FALSE,               // normalized?
+    //         sizeof(GuiVert),        // stride
+    //         (GLvoid*)((intptr_t)0)  // array buffer offset
+    //       );
+    //       OglErr::chkErrDbg();
+    //       GL::glEnableVertexAttribArray(_v402);
+    //       GL::glVertexAttribPointer(
+    //         _v402,
+    //         4,                                          // size
+    //         GL_FLOAT,                                   // type
+    //         GL_FALSE,                                   // normalized?
+    //         sizeof(GuiVert),                            // stride
+    //         (GLvoid*)((intptr_t)0 + sizeof(glm::vec4))  // array buffer offset
+    //       );
+    //       OglErr::chkErrDbg();
+    //       GL::glEnableVertexAttribArray(_v403);
+    //       GL::glVertexAttribPointer(
+    //         _v403,
+    //         4,                                                              // size
+    //         GL_FLOAT,                                                       // type
+    //         GL_FALSE,                                                       // normalized?
+    //         sizeof(GuiVert),                                                // stride
+    //         (GLvoid*)((intptr_t)0 + sizeof(glm::vec4) + sizeof(glm::vec4))  // array buffer offset
+    //       );
+    //       OglErr::chkErrDbg();
+    //       GL::glEnableVertexAttribArray(_v201);
+    //       GL::glVertexAttribPointer(
+    //         _v201,
+    //         2,                                                                                  // size
+    //         GL_FLOAT,                                                                           // type
+    //         GL_FALSE,                                                                           // normalized?
+    //         sizeof(GuiVert),                                                                    // stride
+    //         (GLvoid*)((intptr_t)0 + sizeof(glm::vec4) + sizeof(glm::vec4) + sizeof(glm::vec4))  // array buffer offset
+    //       );
+    //       OglErr::chkErrDbg();
+    //       GL::glEnableVertexAttribArray(_u201);
+    //       GL::glVertexAttribIPointer(
+    //         _u201,
+    //         2,  // size
+    //         GL_UNSIGNED_INT,
+    //         sizeof(GuiVert),                                                                                        // stride
+    //         (GLvoid*)((intptr_t)0 + sizeof(glm::vec4) + sizeof(glm::vec4) + sizeof(glm::vec4) + sizeof(glm::vec2))  // array buffer offset
+    //       );
+    //       OglErr::chkErrDbg();
+    //     }
+  }
+
+private:
+  void init(uint_fast32_t count = 8192) {
+    _count = count;
+    createProgram();
+
+    _verts = std::make_shared<GpuBuffer>("verts", GL_ARRAY_BUFFER, sizeof(GuiVert));
+    _verts->allocate(_count);
+
+    _verts_local = std::vector<GuiVert>((size_t)_count);
+    _verts->copyDataClientServer(_verts_local.size(), _verts_local.data(), sizeof(_verts_local[0]));
+
+    createVAO();
+  }
+  virtual void copyVerts() override {
+    _verts->copyDataClientServer(_used, _verts_local.data(), sizeof(_verts_local[0]));
+  }
+  void createProgram() {
+    std::string vert = Stz "#version 300 es\n" +
+                       "layout(location = 0) in vec4 _v301;//v\n" +
+                       "layout(location = 1) in vec2 _x201;//t\n" +
+                       "\n" +
+                       "out vec2 _texVS;\n" +
+                       "\n" +
+                       "void main() {\n" +
+                       "  _texVS = _x201;\n" +
+                       "  gl_Position =  vec4(_v301.x, _v301.y, -1, 1);	\n" +
+                       "}\n";
+
+    std::string frag = Stz "#version 300 es\n" +
+                       "precision mediump float;\n" +
+                       "out vec4 _gColorOut;\n" +
+                       "uniform sampler2D _ufTexture0;\n" +
+                       "in vec2 _texVS;\n" +
+                       "void main(){\n" +
+                       "  vec4 tx = texture(_ufTexture0, _texVS);\n" +
+                       //  "    if(tx.a < 0.001){\n" +
+                       //  "  		discard;\n" +
+                       //  "  	} \n" +
+                       "  _gColorOut = tx;\n" +
+                       "}\n";
+
+    _prog = std::make_shared<ShaderProgram>();
+    _prog->compile(vert, "", frag);
+  }
+  void createVAO() {
+    GL::glGenVertexArrays(1, &_vao);
+    GL::glBindVertexArray(_vao);
+    {
+      //Very basic vert + tex. The screen coordinates are -1,1 x and -1,1 y
+      GLint _v301 = GL::glGetAttribLocation(_prog->glId(), "_v301");
+      GLint _x201 = GL::glGetAttribLocation(_prog->glId(), "_x201");
+
+      if (_v301 == -1 || _x201 == -1) {
+        BRLogError("Failed to find one or more attributes for shader.");
+        Gu::debugBreak();
+      }
+      else {
+        OglErr::chkErrDbg();
+        _verts->bindBuffer();
+        OglErr::chkErrDbg();
+        GL::glEnableVertexAttribArray(_v301);
+        GL::glVertexAttribPointer(
+          _v301,
+          3,                      // size
+          GL_FLOAT,               // type
+          GL_FALSE,               // normalized?
+          sizeof(GuiVert),        // stride
+          (GLvoid*)((intptr_t)0)  // array buffer offset
+        );
+        OglErr::chkErrDbg();
+        GL::glEnableVertexAttribArray(_x201);
+        GL::glVertexAttribPointer(
+          _x201,
+          2,                                          // size
+          GL_FLOAT,                                   // type
+          GL_FALSE,                                   // normalized?
+          sizeof(GuiVert),                            // stride
+          (GLvoid*)((intptr_t)0 + sizeof(glm::vec4))  // array buffer offset
+        );
+        OglErr::chkErrDbg();
+      }
+      GL::glBindVertexArray(0);
+    }
+  }
+
+  std::vector<GuiVert> _verts_local;
+};
+
+class QuadBlitterGL4 : public IQuadBlitter {
+  typedef v_GuiVertGL4 GuiVert;
+
+public:
+  QuadBlitterGL4(int_fast32_t count = 8192, std::shared_ptr<Texture2D> pTex = nullptr) {
+    init(count);
+  }
+  virtual ~QuadBlitterGL4() {
+  }
+
+  virtual void setQuad(const glm::vec2& point, std::shared_ptr<RenderViewport> vp, const glm::vec4& color = glm::vec4(1, 1, 1, 1), const glm::vec2& wh = glm::vec2(-1, -1)) override {
     if (_used >= _verts_local.size()) {
       BRLogError("Too many quads used.");
       Gu::debugBreak();
@@ -2219,7 +2507,6 @@ public:
     //   v._texsiz.y = fabsf(v._tex.w - v._tex.y);  //y is flipfloped again
     // }
 
-    
     //**Texture Adjust - modulating repeated textures causes seaming issues, especially with texture filtering
     //adjust the texture coordinates by some pixels to account for that.  0.5f seems to work well.
     static float pixAdjust = 0.51f;  // # of pixels to adjust texture by
@@ -2252,7 +2539,6 @@ public:
     v._tex.z -= w1px;
     v._tex.w -= h1px;
 
-
     //**End texture adjust
 
     //Pick Color
@@ -2270,36 +2556,11 @@ public:
     _used++;
   }
 
-  void render(std::shared_ptr<RenderViewport> vp) {
-    if (_used == 0) {
-      return;
-    }
-    glDisable(GL_CULL_FACE);
-
-    std::shared_ptr<Texture2D> tex = getTex();
-
-    copyVerts();
-
-    tex->bind(TextureChannel::e::Channel0);
-    _prog->bind();
-
-    // auto mproj = glm::perspective(60.0f, (float)((float)vp->width() / (float)vp->height()), 1.0f, 1000.0f);
-    // auto mview = glm::lookAt(glm::vec3(0, 0, -10), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-
-    _prog->setTextureUf(tex, "_ufTexture0");
-    // _prog->setMatrixUf(mview, "_ufView");
-    // _prog->setMatrixUf(mproj, "_ufProj");
-
-    //test_inline_vao();
-
-    GL::glBindVertexArray(_vao);
-    // _inds->bindBuffer();
+private:
+  virtual void draw() override {
     glDrawArrays(GL_POINTS, 0, _used);
-    // _inds->unbindBuffer();
-    GL::glBindVertexArray(0);
-    _prog->unbind();
-    tex->unbind(TextureChannel::e::Channel0);
   }
+
   void test_inline_vao() {
     GLint _v401 = GL::glGetAttribLocation(_prog->glId(), "_v401");
     GLint _v402 = GL::glGetAttribLocation(_prog->glId(), "_v402");
@@ -2380,7 +2641,7 @@ private:
 
     createVAO();
   }
-  void copyVerts() {
+  virtual void copyVerts() override {
     _verts->copyDataClientServer(_used, _verts_local.data(), sizeof(_verts_local[0]));
   }
   void createProgram() {
@@ -2597,12 +2858,7 @@ private:
     }
   }
 
-  std::shared_ptr<ShaderProgram> _prog = nullptr;
-  std::shared_ptr<GpuBuffer> _verts = nullptr;
-  std::shared_ptr<Texture2D> _pTex = nullptr;
-  GLuint _vao = 0;
-  uint32_t _count = 1;
-  uint32_t _used = 0;
+private:
   std::vector<GuiVert> _verts_local;
 };
 
@@ -2620,6 +2876,11 @@ class App {
   bool _bClearColorChanged = true;
 
 public:
+#ifdef __EMSCRIPTEN__
+  const bool _emscripten = 1;
+#else
+  const bool _emscripten = 0;
+#endif
   std::shared_ptr<GL> _pGL = std::make_shared<GL>();
   std::shared_ptr<RenderViewport> viewport() { return _viewport; }
   void setClearColor(const glm::vec4& v) {
@@ -2634,7 +2895,7 @@ public:
     double last_delta = Gu::getMicroSeconds();
 
     g->init();
-
+    std::cout << "running loop.." << std::endl;
     while (true) {
       if (handleSDLEvents() == true) {
         break;  //SDL_QUIT
@@ -2669,7 +2930,7 @@ public:
   }
   static void checkSDLErr(bool bLog = true, bool bBreak = true) {
     //Do SDL errors here as well
-    const char* c;
+    const char* c = 0;
     while ((c = SDL_GetError()) != nullptr && *c != 0) {
       //linux : GLXInfo
       if (bLog == true) {
@@ -2687,9 +2948,11 @@ private:
     SDL_ShowCursor(SDL_ENABLE);
 
     SDL_SetMainReady();
+    checkSDLErr();
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) == -1) {
       Log::error(Stz "SDL could not be initialized: " + SDL_GetError());
     }
+    checkSDLErr();
 
     string_t title = "test";
 
@@ -2697,7 +2960,17 @@ private:
       title, 100, 100, 500, 500,
       GraphicsWindowCreateParameters::Wintype_Desktop, false, true, false);
 
+#ifndef __EMSCRIPTEN__
+    //Context attributes aren't supported for emscripten
     setSDLGLFlags(4, 3);
+#else
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+#endif
+
     _pWindow = makeSDLWindow(params, SDL_WINDOW_OPENGL, true);
     initGLContext(_pWindow);
     _viewport = std::make_shared<RenderViewport>(params._width, params._height);
@@ -2714,13 +2987,13 @@ private:
     _context = SDL_GL_CreateContext(sdlw);
     if (!_context) {
       //Eat the "context failed" error.  It's not informative.
-      checkSDLErr(false, false);
+      checkSDLErr(true, false);
       bRet = false;
     }
     else {
       checkSDLErr();
-      int ver, subver, shad_ver, shad_subver;
-      getOpenGLVersion(ver, subver, shad_ver, shad_subver);
+      //int ver=0, subver=0,shad_ver=0, shad_subver=0;
+      printOpenGLVersion();
 
       //Make sure we have a good depth value.
       int iDepth = 0;
@@ -2817,54 +3090,108 @@ private:
     checkSDLErr();
   }
 
-  void getOpenGLVersion(int& ver, int& subver, int& shad_ver, int& shad_subver) {
-    char* tmp;
-    string_t glver;
-    string_t glslver;
-    ver = subver = shad_ver = shad_subver = 0;
+  void printOpenGLVersion() {
+    //string_t glver;
+    //string_t glslver;
+    //   ver = subver = shad_ver = shad_subver = 0;
 
-    tmp = (char*)glGetString(GL_VERSION);
-    if (tmp != nullptr) {
-      glver = tmp;
-    }
-    else {
-      glver = "";
-    }
+    //This is a problem because OpenGL ES spits out the wrong thing.
+    char* tmp = (char*)glGetString(GL_VERSION);
+    BRLogInfo("GL version " + tmp);
+    tmp = (char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+    BRLogInfo("GLSL version " + tmp);
 
-    std::vector<string_t> sv;
-
-    if (glver.length() > 0) {
-      sv = StringUtil::split(glver, '.');
-      if (sv.size() < 2) {
-        BRThrowException("Failed to get OpenGL version. Got '" + glver + "'.  Check that you have OpenGL installed on your machine. You may have to update your 'graphics driver'.");
-      }
-      ver = TypeConv::strToInt(sv[0]);
-      subver = TypeConv::strToInt(sv[1]);
-    }
-    else {
-      BRLogError("Failed to get OpenGL version.");
-    }
-    if (ver > 3) {
-      //This will fail if we try to get an OpenGL version greater than what is supported, returning GL 1.1.  Shade is only supported on GL > 2.1.
-      tmp = (char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
-      if (tmp != nullptr) {
-        glslver = tmp;
-      }
-      else {
-        glslver = "";
-      }
-      if (glslver.length() > 0) {
-        sv = StringUtil::split(glslver, '.');
-        if (sv.size() < 2) {
-          BRThrowException("Failed to get OpenGL Shade version. Got '" + glslver + "'.  Check that you have OpenGL installed on your machine. You may have to update your 'graphics driver'.");
-        }
-        shad_ver = TypeConv::strToInt(sv[0]);
-        shad_subver = TypeConv::strToInt(sv[1]);
-      }
-      else {
-        BRLogWarn("Failed to get OpenGL Shade version.");
-      }
-    }
+    return;
+    //
+    //     if (tmp != nullptr) {
+    //       glver = tmp;
+    //     }
+    //     else {
+    //       glver = "";
+    //     }
+    //
+    //
+    //
+    //     std::vector<string_t> sv;
+    //
+    //     if (glver.length() > 0) {
+    //       sv = StringUtil::split(glver, '.');
+    //       if (sv.size() < 2) {
+    //         BRThrowException("Failed to get OpenGL version. Got '" + glver + "'.  Check that you have OpenGL installed on your machine. You may have to update your 'graphics driver'.");
+    //       }
+    //      // std::cout<<"version = "<<sv[0]<<","<<sv[1]<<std::endl;
+    //       ver = TypeConv::strToInt(sv[0]);
+    //       subver = TypeConv::strToInt(sv[1]);
+    //     }
+    //     else {
+    //       BRLogError("Failed to get OpenGL version.");
+    //     }
+    //     if (ver > 3) {
+    //       //This will fail if we try to get an OpenGL version greater than what is supported, returning GL 1.1.  Shade is only supported on GL > 2.1.
+    //       tmp = (char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+    //       if (tmp != nullptr) {
+    //         glslver = tmp;
+    //       }
+    //       else {
+    //         glslver = "";
+    //       }
+    //       if (glslver.length() > 0) {
+    //         sv = StringUtil::split(glslver, '.');
+    //         if (sv.size() < 2) {
+    //           BRThrowException("Failed to get OpenGL Shade version. Got '" + glslver + "'.  Check that you have OpenGL installed on your machine. You may have to update your 'graphics driver'.");
+    //         }
+    //         shad_ver = TypeConv::strToInt(sv[0]);
+    //         shad_subver = TypeConv::strToInt(sv[1]);
+    //       }
+    //       else {
+    //         BRLogWarn("Failed to get OpenGL Shade version.");
+    //       }
+    //     }
+    //
+    //     if (tmp != nullptr) {
+    //       glver = tmp;
+    //     }
+    //     else {
+    //       glver = "";
+    //     }
+    //
+    //
+    //
+    //     std::vector<string_t> sv;
+    //
+    //     if (glver.length() > 0) {
+    //       sv = StringUtil::split(glver, '.');
+    //       if (sv.size() < 2) {
+    //         BRThrowException("Failed to get OpenGL version. Got '" + glver + "'.  Check that you have OpenGL installed on your machine. You may have to update your 'graphics driver'.");
+    //       }
+    //      // std::cout<<"version = "<<sv[0]<<","<<sv[1]<<std::endl;
+    //       ver = TypeConv::strToInt(sv[0]);
+    //       subver = TypeConv::strToInt(sv[1]);
+    //     }
+    //     else {
+    //       BRLogError("Failed to get OpenGL version.");
+    //     }
+    //     if (ver > 3) {
+    //       //This will fail if we try to get an OpenGL version greater than what is supported, returning GL 1.1.  Shade is only supported on GL > 2.1.
+    //       tmp = (char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+    //       if (tmp != nullptr) {
+    //         glslver = tmp;
+    //       }
+    //       else {
+    //         glslver = "";
+    //       }
+    //       if (glslver.length() > 0) {
+    //         sv = StringUtil::split(glslver, '.');
+    //         if (sv.size() < 2) {
+    //           BRThrowException("Failed to get OpenGL Shade version. Got '" + glslver + "'.  Check that you have OpenGL installed on your machine. You may have to update your 'graphics driver'.");
+    //         }
+    //         shad_ver = TypeConv::strToInt(sv[0]);
+    //         shad_subver = TypeConv::strToInt(sv[1]);
+    //       }
+    //       else {
+    //         BRLogWarn("Failed to get OpenGL Shade version.");
+    //       }
+    //     }
   }
   void setSDLGLFlags(int minVersion, int minSubVersion) {
     checkSDLErr();
@@ -2875,7 +3202,6 @@ private:
     //We want SRGB in the final render, so this should be requested.
     SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, false);
     checkSDLErr();
-
     //Context sharing will be necessary with multiple-window rendering (we are required to create 1 context per window)
     SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
     checkSDLErr();
@@ -2888,7 +3214,6 @@ private:
 
     //Not sure, imagine we'd use our own buffer blending to create a VR scene.
     //SDL_GL_SetAttribute(SDL_GL_STEREO, _pGlState->gl_stereo);
-
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, minVersion);
     checkSDLErr();
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minSubVersion);

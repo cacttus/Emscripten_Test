@@ -10,13 +10,11 @@ Tests <br/>
 * Dynamic asset loading.
 * CORS 
 
-# Results
+# Comments
 
-I wrote this guy several months ago as a test of how easy it is to port a desktop game engine to the browser. The biggest issue was file IO everything else panned out fine.
+So I kicked this project too early to Github thinking the test was complete. It actually wasn't so this is a more working version. 
 
-The biggest problem was asset loading. Especially for a game engine, we need to dynamically create and modify data very quickly meaning disk I/O and you can't do that easily on the web. The local assets for this engine were created through a package.
-
-One way around this is to keep user's assets in a database. That's a whole nother spectrum of complexity to dive into. Emscripten is really cool. I might pick this project back up in the future to see if we can get around some of these limitations.
+This runs ES3 (emulation) in the browser and GL4.3 on the desktop. If you import the keybindings.json into VSCode the project is set up to run as: F7,F5=compile/run on web, and Ctrl+F7,Ctrl+F5 = Compile/run desktop.
 
 # How to Run<br/>
 

@@ -1,0 +1,45 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  //-s ALLOW_MEMORY_GROWTH=1 
+  //-s WASM=1
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Emscripten Build",
+      "type": "shell",
+      "command": "echo CWD=$(pwd) \
+      && cd ../emsdk \
+      && source ./emsdk_env.sh \
+      && cd ../em_test \
+      && mkdir -p ./build \
+      && EMCC_DEBUG=2; \
+      emcc -g -gsource-map -std=c++17 \
+      -I./third_party \
+      -s WASM=1 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2 -s FULL_ES3=1 -s USE_SDL=2 \
+      ./src/main.cpp ./src/lodepng.cpp \
+      -o ./build/test.html \
+      --source-map-base=/build/ --preload-file ./assets/",
+      "windows":{
+        "command":"TODO"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Emscripten Run",
+      "type": "shell",
+      "command": "firefox localhost:8080",
+      "windows":{
+        "command":"TODO"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+
+}
