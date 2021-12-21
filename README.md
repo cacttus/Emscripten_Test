@@ -36,8 +36,7 @@ npm install<br/>
 
 
 # Image
-![Image](http://github.com/cacttus/Emscripten_Test/master/ss.png)
-
+![Image](https://github.com/cacttus/Emscripten_Test/blob/master/ss.png?raw=true)
 
 
 # TODO
