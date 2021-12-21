@@ -33,7 +33,7 @@ npm<br/>
 * See .vscode/tasks.json for build string
 
 # Image
-![Image](https://github.com/cacttus/Emscripten_Test/blob/master/ss.png?raw=true)
+![Image]<img src="https://github.com/cacttus/Emscripten_Test/blob/master/ss.png?raw=true" width="400" height="790">
 
 
 # TODO
