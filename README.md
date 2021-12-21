@@ -9,6 +9,9 @@ Tests <br/>
 * Threads (-pthread) (compiles to web worker)
 * Dynamic asset loading.
 
+# Image
+![Image]<img src="https://github.com/cacttus/Emscripten_Test/blob/master/ss.png?raw=true" width="400" height="auto">
+
 # How to Run<br/>
 
 ## Required Packages 
@@ -31,9 +34,6 @@ npm<br/>
 * In your browser type localhost:8080
 * For VSCode users: Open the folder in VSCode. F7,F5=compile/run on web (Firefox default), and Ctrl+F7,Ctrl+F5 = Compile/run desktop.
 * See .vscode/tasks.json for build string
-
-# Image
-![Image]<img src="https://github.com/cacttus/Emscripten_Test/blob/master/ss.png?raw=true" width="400" height="auto">
 
 
 # TODO
