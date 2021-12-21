@@ -24,6 +24,8 @@ src/main.cpp has the terminal build string for plain em++. There is also a build
 ## 1. Install
 
 pkg install<br/>
+* build-essential
+* SDL2
 * cmake
 * python
 * emscripten - from git.
