@@ -30,6 +30,7 @@
 #include <algorithm>
 #include "./lodepng.h"
 #include <filesystem>
+#include <thread>
 
 // Linux
 #include <dirent.h>
@@ -131,6 +132,10 @@ class Gu;
 class Log;
 class RenderViewport;
 
+#ifdef __EMSCRIPTEN__
+void emscripten_renderloop(void* arg);
+#endif
+
 #pragma endregion
 
 class Log {
@@ -146,8 +151,8 @@ public:
 #pragma region Preprocessor
 #define __out_
 #define __in_
-#define BRLogError(x) Log::error(Stz x)
-#define BRLogInfo(x) Log::info(Stz x)
+#define BRLogError(x) sf2d::Log::error(Stz x)
+#define BRLogInfo(x) sf2d::Log::info(Stz x)
 #define BRLogWarn(x) BRLogInfo(x)
 #define BRLogDebug(x) BRLogInfo(x)
 #define BRThrowException(x)     \
@@ -496,11 +501,21 @@ public:
 
 class Input {
 public:
-  void setKeyDown(SDL_Scancode code) {
-    setKey(code, ButtonState::e::Down);
+  bool pressOrDown(SDL_Scancode code) {
+    auto key = keys.find(code);
+    if (key != keys.end()) {
+      if (key->second == ButtonState::e::Up || key->second == ButtonState::e::Press) {
+        return true;
+      }
+      return false;
+    }
+    return false;
   }
-  void setKeyUp(SDL_Scancode code) {
-    setKey(code, ButtonState::e::Up);
+  void updateKeyUp(SDL_Scancode code) {
+    updateKey(code, ButtonState::e::Up);
+  }
+  void updateKeyDown(SDL_Scancode code) {
+    updateKey(code, ButtonState::e::Down);
   }
   void setLmbState(ButtonState::e b) {
     _eLMBState = b;
@@ -511,13 +526,62 @@ public:
   void setMouseWheel(int32_t m) {
     _iMouseWheel = m;
   }
-  void setKey(SDL_Scancode code, ButtonState::e val) {
+  void updateInput(){
+    for(auto& it : keys){
+      if(it.second == ButtonState::e::Press){
+        it.second = ButtonState::e::Down;
+      }
+      else if(it.second == ButtonState::e::Release){
+        it.second = ButtonState::e::Up;
+      }
+    }
+  }
+private:
+  void updateKey(SDL_Scancode code, ButtonState::e val) {
     auto found = keys.find(code);
     if (found == keys.end()) {
       keys.insert(std::make_pair(code, ButtonState::e::Up));
       found = keys.find(code);
     }
-    found->second = val;
+    ButtonState::e newval = val;//ButtonState::e::Up;
+// 
+//     if (val == ButtonState::e::Down) {
+//       if (found->second == ButtonState::e::Press) {
+//         newval = ButtonState::e::Down;
+//       }
+//       else if (found->second == ButtonState::e::Down) {
+//       }
+//       else if (found->second == ButtonState::e::Up) {
+//         newval = ButtonState::e::Press;
+//       }
+//       else if (found->second == ButtonState::e::Release) {
+//         newval = ButtonState::e::Press;
+//       }
+//       else {
+//         BRThrowNotImplementedException();
+//       }
+//     }
+//     else if (val == ButtonState::e::Up) {
+//       if (found->second == ButtonState::e::Press) {
+//         newval = ButtonState::e::Release;
+//       }
+//       else if (found->second == ButtonState::e::Down) {
+//         newval = ButtonState::e::Release;
+//       }
+//       else if (found->second == ButtonState::e::Up) {
+//       }
+//       else if (found->second == ButtonState::e::Release) {
+//         newval = ButtonState::e::Up;
+//       }
+//       else {
+//         BRThrowNotImplementedException();
+//       }
+//     }
+//     else {
+//       BRThrowNotImplementedException();
+//     }
+
+    found->second = newval;
   }
 
 private:
@@ -577,6 +641,7 @@ public:
   }
   static void guiQuad2d(Box2f& pq, std::shared_ptr<RenderViewport> vp) {
     //Transforms a quad for the matrix-less Gui projection.
+    //*Reutrns a quad where P0 is TOP LEFT of the screen. P1 Bottom Right.
 
     //The resulting coordinates for the GPU are -0.5 +0.5 in both axes with the center being in the center of the screen
     //Translate a 2D screen quad to be rendered in a shader.
@@ -604,17 +669,18 @@ std::unique_ptr<Input> Gu::_pInput;
 
 class Game {
 public:
-  Game(std::shared_ptr<App> a) {
+  Game(App* a) {
     _pApp = a;
   }
+  virtual ~Game() {}
   virtual void init() = 0;
   virtual void update(double delta) = 0;
   virtual void render() = 0;
 
-  std::shared_ptr<App> app() { return _pApp; }
+  App* app() { return _pApp; }
 
 private:
-  std::shared_ptr<App> _pApp = nullptr;
+  App* _pApp = nullptr;
 };
 
 //Interface for OpenGL
@@ -1042,7 +1108,7 @@ private:
     // }
     if (!GL::glGetDebugMessageLog) {
 #ifdef __EMSCRIPTEN__
-      BRLogWarn("Opengl log not supported with ES");
+      //BRLogWarn("Opengl log not supported with ES");
       return;
 #endif
       BRLogWarn("Opengl log not initialized (context isseu");
@@ -1479,7 +1545,6 @@ public:
     _bRepeatU = bRepeatU;
     _bRepeatV = bRepeatV;
 
-#ifndef __EMSCRIPTEN__
     //Specify storage mode
     if (genMipmaps) {
       OglErr::chkErrRt();
@@ -1492,7 +1557,6 @@ public:
       GL::glTexStorage2D(_eGLTextureBinding, 1, _eGLTextureMipmapFormat, width(), height());
       OglErr::chkErrRt();
     }
-#endif
 
     // Copy texture data
     glTexSubImage2D(
@@ -1731,7 +1795,7 @@ class ShaderProgram {
         BRThrowException("Invalid shader type passed to Shader()");
       }
 
-      _sourceLines = StringUtil::split(src, { '\n' });
+      _sourceLines = StringUtil::split(src, '\n');
 
       //Shader compiler stops at null lines so we need the \n in there.
       GLchar** arg = new char*[_sourceLines.size()];
@@ -1910,13 +1974,13 @@ public:
   void unbind() {
     GL::glUseProgram(0);
   }
-  GLuint texVal = 0;
+  GLint texVal = 0;
   void setTextureUf(std::shared_ptr<Texture2D> tex, const string_t& name) {
     auto loc = GL::glGetUniformLocation(_glId, name.c_str());
     OglErr::chkErrDbg();
     if (loc != 0) {
-      texVal = tex->boundChannel();
-      GL::glUniform1uiv(loc, 1, &texVal);
+      texVal = (int32_t)tex->boundChannel();
+      GL::glUniform1iv(loc, 1, &texVal);
       OglErr::chkErrDbg();
     }
   }
@@ -1967,7 +2031,7 @@ public:
     GL::glGenBuffers(1, &_glId);
     _meshName = mesh_name;
   }
-  ~GpuBuffer() {
+  virtual ~GpuBuffer() {
     GL::glDeleteBuffers(1, &_glId);
   }
   bool isAllocated() { return _bIsAllocated; }
@@ -2003,9 +2067,9 @@ public:
     return copyDataServerClient(gb->size(), gb->data(), 1);
   }
   void readbytes(size_t num_elements, void* __out_ buf, int32_t elementSize) {
-    #ifdef __EMSCRIPTEN__
-      BRThrowException("BR2:Emscripten::Reading GL Buffers not allowed in GLES.");
-    #endif
+#ifdef __EMSCRIPTEN__
+    BRThrowException("BR2:Emscripten::Reading GL Buffers not allowed in GLES.");
+#endif
     if (buf == nullptr) {
       BRLogError("Tried to read to NULL Buffer reading Gpu contents.");
       Gu::debugBreak();
@@ -2076,7 +2140,7 @@ public:
       //we intend to have it to be the GIVEN size. glBufferData will reallocate it.
       void* pData = nullptr;
 
-      mapBuffer(GL_MAP_WRITE_BIT|GL_MAP_INVALIDATE_BUFFER_BIT, copySizeBytes, pData);
+      mapBuffer(GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT, copySizeBytes, pData);
       std::memcpy((void*)pData, frags, copySizeBytes);
       //memcpy_s((void*)pData, getByteSize(), frags, copySizeBytes);
       unmapBuffer();
@@ -2105,8 +2169,8 @@ public:
       OglErr::chkErrDbg();
     }
     frags = GL::glMapBufferRange(_glBufferType, 0, copySizeBytes, access);
-      //frags = GL::glMapBuffer(_glBufferType, access);
-      OglErr::chkErrDbg();
+    //frags = GL::glMapBuffer(_glBufferType, access);
+    OglErr::chkErrDbg();
 
     _isMapped = true;
 
@@ -2183,17 +2247,23 @@ class MeshComponent {
 };
 class IQuadBlitter {
 public:
-  virtual void setQuad(const glm::vec2& point, std::shared_ptr<RenderViewport> vp, const glm::vec4& color = glm::vec4(1, 1, 1, 1), const glm::vec2& wh = glm::vec2(-1, -1)) = 0;
+  IQuadBlitter() {}
+  virtual ~IQuadBlitter() {
+    GL::glDeleteVertexArrays(1, &_vao);
+  }
+  virtual void setQuad(const glm::vec2& point, std::shared_ptr<RenderViewport> vp, const glm::vec4& color, const glm::vec2& wh) = 0;
+  virtual void draw() = 0;
+  virtual void copyVerts() = 0;
+
   void reset() {
     _used = 0;
   }
-  virtual void draw() = 0;
-  virtual void copyVerts() = 0;
   void render(std::shared_ptr<RenderViewport> vp) {
     if (_used == 0) {
       return;
     }
     glDisable(GL_CULL_FACE);
+    //Note: CCW culling for emscripten.
 
     std::shared_ptr<Texture2D> tex = getTex();
 
@@ -2219,9 +2289,6 @@ public:
     _prog->unbind();
     tex->unbind(TextureChannel::e::Channel0);
   }
-  virtual ~IQuadBlitter() {
-    GL::glDeleteVertexArrays(1, &_vao);
-  }
   void setTexture(std::shared_ptr<Texture2D> pTex) {
     _pTex = pTex;
   }
@@ -2245,12 +2312,12 @@ class QuadBlitterES3 : public IQuadBlitter {
   typedef v_GuiVertES3 GuiVert;
 
 public:
-  QuadBlitterES3(int_fast32_t count = 8192, std::shared_ptr<Texture2D> pTex = nullptr) {
+  QuadBlitterES3(int_fast32_t count = 2048, std::shared_ptr<Texture2D> pTex = nullptr) {
     init(count);
   }
   virtual ~QuadBlitterES3() {
   }
-  virtual void setQuad(const glm::vec2& point, std::shared_ptr<RenderViewport> vp, const glm::vec4& color = glm::vec4(1, 1, 1, 1), const glm::vec2& wh = glm::vec2(-1, -1)) override {
+  virtual void setQuad(const glm::vec2& point, std::shared_ptr<RenderViewport> vp, const glm::vec4& color, const glm::vec2& wh) override {
     if (_used >= _verts_local.size()) {
       BRLogError("Too many quads used.");
       Gu::debugBreak();
@@ -2268,91 +2335,41 @@ public:
     Gu::guiQuad2d(cpyPos, vp);
 
     /*
-
-2 +------+ 3
-  |    / |
-  | /    |
-0 +------+ 1
-
-*/
+      p0 +------+ p1
+        |    / |
+        | /    |
+      p2 +------+ p3
+    */
     GuiVert& v0 = _verts_local[_used++];
     GuiVert& v1 = _verts_local[_used++];
     GuiVert& v2 = _verts_local[_used++];
     GuiVert& v3 = _verts_local[_used++];
-    v0._pos.x = cpyPos._p0.x;
-    v0._pos.y = cpyPos._p0.x;
-    v1._pos = v2._pos = v3._pos = v0._pos;
-    v0._tex = v1._tex = v2._tex = v3._tex = glm::vec2(0, 0);
+    GuiVert& v4 = _verts_local[_used++];
+    GuiVert& v5 = _verts_local[_used++];
+    glm::vec3 p0 = glm::vec3(cpyPos._p0.x, cpyPos._p1.y, -1);
+    glm::vec3 p1 = glm::vec3(cpyPos._p1.x, cpyPos._p1.y, -1);
+    glm::vec3 p2 = glm::vec3(cpyPos._p0.x, cpyPos._p0.y, -1);
+    glm::vec3 p3 = glm::vec3(cpyPos._p1.x, cpyPos._p0.y, -1);
+
+    v0._pos = p0;
+    v0._tex = glm::vec2(0, 1);
+    v1._pos = p2;
+    v1._tex = glm::vec2(0, 0);
+    v2._pos = p1;
+    v2._tex = glm::vec2(1, 1);
+
+    v3._pos = p1;
+    v3._tex = glm::vec2(1, 1);
+    v4._pos = p2;
+    v4._tex = glm::vec2(0, 0);
+    v5._pos = p3;
+    v5._tex = glm::vec2(1, 0);
   }
 
   virtual void draw() override {
     glDrawArrays(GL_TRIANGLES, 0, _used);
   }
   void test_inline_vao() {
-    //     GLint _v401 = GL::glGetAttribLocation(_prog->glId(), "_v401");
-    //     GLint _v402 = GL::glGetAttribLocation(_prog->glId(), "_v402");
-    //     GLint _v403 = GL::glGetAttribLocation(_prog->glId(), "_v403");
-    //     GLint _v201 = GL::glGetAttribLocation(_prog->glId(), "_v201");
-    //     GLint _u201 = GL::glGetAttribLocation(_prog->glId(), "_u201");
-    //
-    //     if (_v401 == -1 || _v402 == -1 || _v403 == -1 || _v201 == -1 || _u201 == -1) {
-    //       BRLogError("Failed to find one or more attributes for shader.");
-    //       Gu::debugBreak();
-    //     }
-    //     else {
-    //       OglErr::chkErrDbg();
-    //       _verts->bindBuffer();
-    //       OglErr::chkErrDbg();
-    //       GL::glEnableVertexAttribArray(_v401);
-    //       GL::glVertexAttribPointer(
-    //         _v401,
-    //         4,                      // size
-    //         GL_FLOAT,               // type
-    //         GL_FALSE,               // normalized?
-    //         sizeof(GuiVert),        // stride
-    //         (GLvoid*)((intptr_t)0)  // array buffer offset
-    //       );
-    //       OglErr::chkErrDbg();
-    //       GL::glEnableVertexAttribArray(_v402);
-    //       GL::glVertexAttribPointer(
-    //         _v402,
-    //         4,                                          // size
-    //         GL_FLOAT,                                   // type
-    //         GL_FALSE,                                   // normalized?
-    //         sizeof(GuiVert),                            // stride
-    //         (GLvoid*)((intptr_t)0 + sizeof(glm::vec4))  // array buffer offset
-    //       );
-    //       OglErr::chkErrDbg();
-    //       GL::glEnableVertexAttribArray(_v403);
-    //       GL::glVertexAttribPointer(
-    //         _v403,
-    //         4,                                                              // size
-    //         GL_FLOAT,                                                       // type
-    //         GL_FALSE,                                                       // normalized?
-    //         sizeof(GuiVert),                                                // stride
-    //         (GLvoid*)((intptr_t)0 + sizeof(glm::vec4) + sizeof(glm::vec4))  // array buffer offset
-    //       );
-    //       OglErr::chkErrDbg();
-    //       GL::glEnableVertexAttribArray(_v201);
-    //       GL::glVertexAttribPointer(
-    //         _v201,
-    //         2,                                                                                  // size
-    //         GL_FLOAT,                                                                           // type
-    //         GL_FALSE,                                                                           // normalized?
-    //         sizeof(GuiVert),                                                                    // stride
-    //         (GLvoid*)((intptr_t)0 + sizeof(glm::vec4) + sizeof(glm::vec4) + sizeof(glm::vec4))  // array buffer offset
-    //       );
-    //       OglErr::chkErrDbg();
-    //       GL::glEnableVertexAttribArray(_u201);
-    //       GL::glVertexAttribIPointer(
-    //         _u201,
-    //         2,  // size
-    //         GL_UNSIGNED_INT,
-    //         sizeof(GuiVert),                                                                                        // stride
-    //         (GLvoid*)((intptr_t)0 + sizeof(glm::vec4) + sizeof(glm::vec4) + sizeof(glm::vec4) + sizeof(glm::vec2))  // array buffer offset
-    //       );
-    //       OglErr::chkErrDbg();
-    //     }
   }
 
 private:
@@ -2390,9 +2407,9 @@ private:
                        "in vec2 _texVS;\n" +
                        "void main(){\n" +
                        "  vec4 tx = texture(_ufTexture0, _texVS);\n" +
-                       //  "    if(tx.a < 0.001){\n" +
-                       //  "  		discard;\n" +
-                       //  "  	} \n" +
+                       "    if(tx.a < 0.001){\n" +
+                       "  		discard;\n" +
+                       "  	} \n" +
                        "  _gColorOut = tx;\n" +
                        "}\n";
 
@@ -2442,7 +2459,6 @@ private:
 
   std::vector<GuiVert> _verts_local;
 };
-
 class QuadBlitterGL4 : public IQuadBlitter {
   typedef v_GuiVertGL4 GuiVert;
 
@@ -2453,7 +2469,8 @@ public:
   virtual ~QuadBlitterGL4() {
   }
 
-  virtual void setQuad(const glm::vec2& point, std::shared_ptr<RenderViewport> vp, const glm::vec4& color = glm::vec4(1, 1, 1, 1), const glm::vec2& wh = glm::vec2(-1, -1)) override {
+  virtual void setQuad(const glm::vec2& point, std::shared_ptr<RenderViewport> vp, const glm::vec4& color, const glm::vec2& wh) override {
+    BRLogInfo("QUDSS");
     if (_used >= _verts_local.size()) {
       BRLogError("Too many quads used.");
       Gu::debugBreak();
@@ -2765,8 +2782,8 @@ private:
                        "   //Texture Scaling\n" +
                        "   //We need texpos here = p + mod(a-p, siz);\n" +
                        "   vec2 texmod;\n" +
-                       "   texmod.x = _texPos.x + mod(_tex.x - _texPos.x, _texSiz.x);\n" +
-                       "   texmod.y = _texPos.y + mod(_tex.y - _texPos.y, _texSiz.y);\n" +
+                       "   texmod.x = _texPos.x + mod(_tex.x - _texPos.x, _texSiz.x) + 0.001;\n" +
+                       "   texmod.y = _texPos.y + mod(_tex.y - _texPos.y, _texSiz.y) + 0.001;\n" +
                        "   \n" +
                        "	vec4 tx = texture(_ufTexture0, vec2(texmod));\n" +
                        "    if(tx.a < 0.001){\n" +
@@ -2863,18 +2880,6 @@ private:
 };
 
 class App {
-  //**
-  int _iProfile = SDL_GL_CONTEXT_PROFILE_COMPATIBILITY;
-  int _iDepthBits = 24;
-  //**
-  SDL_Window* _pWindow;
-  SDL_GLContext _context;
-  uint32_t _iSupportedDepthSize = 0;
-  bool _bVsync = false;
-  std::shared_ptr<RenderViewport> _viewport = nullptr;
-  glm::vec4 _clearColor = glm::vec4(1, 0, 1, 1);
-  bool _bClearColorChanged = true;
-
 public:
 #ifdef __EMSCRIPTEN__
   const bool _emscripten = 1;
@@ -2889,44 +2894,71 @@ public:
   }
 
 public:
-  void run(std::shared_ptr<Game> g) {
-    init();
-    double last_time = Gu::getMicroSeconds();
-    double last_delta = Gu::getMicroSeconds();
-
-    g->init();
-    std::cout << "running loop.." << std::endl;
-    while (true) {
-      if (handleSDLEvents() == true) {
-        break;  //SDL_QUIT
-      }
-
-      SDL_GL_MakeCurrent(_pWindow, _context);
-      {
-        double curtime = Gu::getMicroSeconds();
-        last_delta = curtime - last_time;
-        last_time = curtime;
-
-        //Technically, we could just use the SDL resize event to prevent unnecessary resize code.
-        int last_w = 1, last_h = 1;
-        SDL_GetWindowSize(_pWindow, &last_w, &last_h);
-        if (_viewport->updateWH((uint32_t)last_w, (uint32_t)last_h)) {
-          //Hypothetically We would resize FBO's here as well
-        }
-
-        g->update(last_delta);
-
-        if (_bClearColorChanged) {
-          glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
-          _bClearColorChanged = false;
-        }
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        g->render();
-      }
-      SDL_GL_SwapWindow(_pWindow);
+  bool renderLoop() {
+    if (!_pGame) {
+      return true;
     }
+    //Gu::getGlobalInput()->updateInput();
+    if (handleSDLEvents() == true) {
+      BRLogDebug("Got quit msg.");
+      return true;  //SDL_QUIT
+    }
+#ifndef __EMSCRIPTEN__
+    SDL_GL_MakeCurrent(_pWindow, _context);
+#endif
+    {
+      double curtime = Gu::getMicroSeconds();
+      last_delta = curtime - last_time;
+      last_time = curtime;
+
+      //Technically, we could just use the SDL resize event to prevent unnecessary resize code.
+      int last_w = 1, last_h = 1;
+      SDL_GetWindowSize(_pWindow, &last_w, &last_h);
+      if (_viewport->updateWH((uint32_t)last_w, (uint32_t)last_h)) {
+        //Hypothetically We would resize FBO's here as well
+      }
+
+      _pGame->update(last_delta / 1000000);
+
+      if (_bClearColorChanged) {
+        glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+        _bClearColorChanged = false;
+      }
+
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+      _pGame->render();
+    }
+//This is apparently not used in WebGL
+#ifndef __EMSCRIPTEN__
+    SDL_GL_SwapWindow(_pWindow);
+#endif
+
+    return false;
+  }
+  void run(Game* g) {
+    BRLogInfo("Running loop..");
+    _pGame = g;
+
+    BRLogInfo("Initializing system..");
+    init();
+    BRLogInfo("..Done");
+
+    BRLogInfo("Initializing game..");
+    g->init();
+    BRLogInfo("..Done");
+
+#ifndef __EMSCRIPTEN__
+    while (true) {
+      if (renderLoop()) {
+        break;
+      }
+    }
+#endif
+
+#ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop_arg(emscripten_renderloop, (void*)this, 0, 1);
+#endif
   }
   static void checkSDLErr(bool bLog = true, bool bBreak = true) {
     //Do SDL errors here as well
@@ -2954,7 +2986,7 @@ private:
     }
     checkSDLErr();
 
-    string_t title = "test";
+    string_t title = "OpenGL Desktop";
 
     GraphicsWindowCreateParameters params(
       title, 100, 100, 500, 500,
@@ -3336,11 +3368,11 @@ private:
         break;
       case SDL_KEYDOWN:
         keyCode = event->key.keysym.scancode;
-        Gu::getGlobalInput()->setKeyDown(keyCode);
+        Gu::getGlobalInput()->updateKeyDown(keyCode);
         break;
       case SDL_KEYUP:
         keyCode = event->key.keysym.scancode;
-        Gu::getGlobalInput()->setKeyUp(keyCode);
+        Gu::getGlobalInput()->updateKeyUp(keyCode);
         break;
       case SDL_MOUSEBUTTONDOWN:
         switch (event->button.button) {
@@ -3389,6 +3421,22 @@ private:
 
     return true;
   }
+
+private:
+  //**
+  int _iProfile = SDL_GL_CONTEXT_PROFILE_COMPATIBILITY;
+  int _iDepthBits = 24;
+  //**
+  SDL_Window* _pWindow;
+  SDL_GLContext _context;
+  uint32_t _iSupportedDepthSize = 0;
+  bool _bVsync = false;
+  std::shared_ptr<RenderViewport> _viewport = nullptr;
+  glm::vec4 _clearColor = glm::vec4(.401, .62, .919, 1);
+  bool _bClearColorChanged = true;
+  Game* _pGame = nullptr;
+  double last_time = Gu::getMicroSeconds();
+  double last_delta = Gu::getMicroSeconds();
 };
 
 #pragma region PostDec And Defs

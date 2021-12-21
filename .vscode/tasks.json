@@ -3,6 +3,11 @@
   // for the documentation about the tasks.json format
   //-s ALLOW_MEMORY_GROWTH=1 
   //-s WASM=1
+
+  //Sanitizers really add a lot to compile and runtime. Remove if slow. Add if you have bugs.
+  // https://emscripten.org/docs/debugging/Sanitizers.html
+  //-fsanitize-minimal-runtime (production)
+  //-fsanitize=undefined -fsanitize=address -fsanitize=null --bind 
   "version": "2.0.0",
   "tasks": [
     {
@@ -14,9 +19,9 @@
       && cd ../em_test \
       && mkdir -p ./build \
       && EMCC_DEBUG=2; \
-      emcc -g -gsource-map -std=c++17 \
+      em++ -g -gsource-map -std=c++17 -Wall -Wno-unused-private-field  -Wno-unused-variable \
       -I./third_party \
-      -s WASM=1 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2 -s FULL_ES3=1 -s USE_SDL=2 \
+      -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=1 -s WASM=1 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2 -s FULL_ES3=1 -s USE_SDL=2 \
       ./src/main.cpp ./src/lodepng.cpp \
       -o ./build/test.html \
       --source-map-base=/build/ --preload-file ./assets/",

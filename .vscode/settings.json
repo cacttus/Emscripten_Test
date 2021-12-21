@@ -124,7 +124,8 @@
     "ios": "cpp",
     "locale": "cpp",
     "queue": "cpp",
-    "stack": "cpp"
+    "stack": "cpp",
+    "hash_map": "cpp"
   },
   "cmake.configureOnOpen": false,
   "cmake.debugConfig": {

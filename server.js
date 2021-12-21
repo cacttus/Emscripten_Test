@@ -34,9 +34,15 @@ app.get('/', (req, res) => {
   res.sendfile('./build/test.html');
 });
 app.get(/^\/emsdk\/.*$/, (req, res) => {
+  //Assuming your emsdk is in ../emsdk
   console.log('->' + req.url + "  > " + __dirname);
   console.log("->>> " + '..' + req.url, {root : __dirname})
   res.sendFile(req.url, {root : __dirname});
+});
+app.get(/^\/third_party\/.*$/, (req, res) => {
+  console.log('->' + req.url + "  > " + __dirname);
+  console.log("->>> " + '..' + req.url, {root : __dirname})
+  res.sendFile('.'+req.url, {root : __dirname});
 });
 app.get(/^\/build\/.*$/, (req, res) => {
   console.log('->' + req.url);
