@@ -1,13 +1,13 @@
 # Emscripten Test C++ / OpenGL
 
-Emscripten is a neat tool that compiles C++ and OpenGL into javascript for the web. It has its own compiler, and even its own CMake compiler. It packages assets and also generates WASM code for optimal speed. It even supports multithreading via webworkers.
+Emscripten is an api that compiles C++ and OpenGL into javascript for the web. It has its own compiler, and even its own CMake compiler. It packages assets and also generates WASM code for optimal speed. It supports multithreading via webworkers and many more.
 
-This is a simple Emscripen test game engine with C++ / Opengl / SDL / CMake. The goal of this project is to test out the feasibility of emscripten as a commercial game engine.
+This is a simple Emscripen test game engine with C++ / Opengl / SDL and CMake.
 
 Tests <br/>
 * Render Speed / WASM
 * Threads (-pthread) (compiles to web worker)
-* Dynamic asset loading.
+* Asset loading.
 
 Yes, It works!<br/>
 <img alt="Yes, it works!" src="https://github.com/cacttus/Emscripten_Test/blob/master/ss.png?raw=true" width="400" height="auto">
